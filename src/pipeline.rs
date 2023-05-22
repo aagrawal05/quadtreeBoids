@@ -24,7 +24,7 @@ use vulkano::swapchain::{ Surface, Swapchain };
 
 #[derive(BufferContents, Vertex)]
 #[repr(C)]
-pub struct MyVertex {
+pub struct CircleVertex {
     #[format(R32G32_SFLOAT)]
     pub position: [f32; 2],
 }
@@ -108,7 +108,7 @@ pub fn get_pipeline(
     viewport: Viewport,
 ) -> Arc<GraphicsPipeline> {
     GraphicsPipeline::start()
-        .vertex_input_state(MyVertex::per_vertex())
+        .vertex_input_state(CircleVertex::per_vertex())
         .vertex_shader(vs.entry_point("main").unwrap(), ())
         .input_assembly_state(InputAssemblyState::new())
         .viewport_state(ViewportState::viewport_fixed_scissor_irrelevant([viewport]))
@@ -123,7 +123,7 @@ pub fn get_command_buffers(
     queue: &Arc<Queue>,
     pipeline: &Arc<GraphicsPipeline>,
     framebuffers: &[Arc<Framebuffer>],
-    vertex_buffer: &Subbuffer<[MyVertex]>,
+    vertex_buffer: &Subbuffer<[CircleVertex]>,
 ) -> Vec<Arc<PrimaryAutoCommandBuffer>> {
     framebuffers
         .iter()

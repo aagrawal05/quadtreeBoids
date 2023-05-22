@@ -1,8 +1,9 @@
 // 2D sparse quadtree implementation
 
+#[derive(Clone)]
 pub struct Bounds {
-    pos: [f32; 2],
-    size: [f32; 2],
+    pub pos: [f32; 2],
+    pub size: [f32; 2],
 }
 
 pub trait ContainsBounds {
@@ -25,13 +26,13 @@ impl Bounds {
     }
 }
 
-pub struct Quadtree<T: ContainsBounds> {
+pub struct Quadtree<T: ContainsBounds + Copy> {
     bounds: Bounds,
     elements: Vec<T>,
     children: [Option<Box<Quadtree<T>>>; 4],
 }
 
-impl<T: ContainsBounds> Quadtree<T> {
+impl<T: ContainsBounds + Copy> Quadtree<T> {
     pub fn new(initialBounds: Bounds) -> Self {
         Self {
             bounds: initialBounds,
@@ -42,7 +43,7 @@ impl<T: ContainsBounds> Quadtree<T> {
 
     pub fn insert(&mut self, item: &T) {
         if self.bounds.contains(&item.getBounds()) {
-            self.elements.push(item.clone());
+            self.elements.push(*item);
         } else {
             let mut child_index = 0;
             for i in 0..2 {

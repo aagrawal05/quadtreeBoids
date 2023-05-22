@@ -115,9 +115,13 @@ fn main() {
 
     let mut sim = simulation::Simulation::new(10);
 
-    let posVec = Vec::new();
+    let mut posVec = Vec::new();
     for b in sim.getBoids() {
-        posVec.push_back(&b.pos)
+        posVec.push(
+            pipeline::CircleVertex {
+                position: b.pos
+            }
+        )
     }
 
     let vertex_buffer = Buffer::from_iter(

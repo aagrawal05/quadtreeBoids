@@ -1,4 +1,4 @@
-use crate::{windowWidth, windowHeight}
+use crate::{windowWidth, windowHeight};
 use crate::quadtree;
 
 //TODO: Move to window creation
@@ -11,7 +11,7 @@ const cohCoef:f32 = 1.0;
 const sizeR:f32 = 2.0;
 pub const viewR:f32 = 5.0;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Boid
 {
     pub pos: [f32; 2],
@@ -20,8 +20,8 @@ pub struct Boid
 }
 
 impl quadtree::ContainsBounds for Boid {
-    fn getBounds (&self) -> Bounds {
-        Bounds {
+    fn getBounds (&self) -> quadtree::Bounds {
+        quadtree::Bounds {
             pos: [self.pos[0] - sizeR/2.0, self.pos[1] - sizeR/2.0], // Top left corner of boid
             size: [sizeR, sizeR] // Radius of boid
         }
@@ -43,9 +43,10 @@ impl Boid {
         self.pos[0] += self.vel[0];
         self.pos[1] += self.vel[1];
     }
+
     fn flock(&mut self, boids: Vec<&Boid>) {
-        let sep = self.separate(boids);
-        let ali = self.align(boids);
+        let sep = self.separate(boids.clone());
+        let ali = self.align(boids.clone());
         let coh = self.cohesion(boids);
         self.acc[0] += sep[0] * sepCoef + ali[0] * aliCoef + coh[0] * cohCoef;
         self.acc[1] += sep[1] * sepCoef + ali[1] * aliCoef + coh[1] * cohCoef;
@@ -70,7 +71,7 @@ impl Boid {
         let mut count = 0;
         for other in boids {
             let d = (self.pos[0] - other.pos[0]) * (self.pos[0] - other.pos[0]) + (self.pos[1] - other.pos[1]) * (self.pos[1] - other.pos[1]);
-            if d > 0.0 && d < r * r {
+            if d > 0.0 && d < viewR * viewR {
                 let mut diff = [self.pos[0] - other.pos[0], self.pos[1] - other.pos[1]];
                 let len = (diff[0] * diff[0] + diff[1] * diff[1]).sqrt();
                 diff[0] /= len;
@@ -96,7 +97,7 @@ impl Boid {
         let mut count = 0;
         for other in boids {
             let d = (self.pos[0] - other.pos[0]) * (self.pos[0] - other.pos[0]) + (self.pos[1] - other.pos[1]) * (self.pos[1] - other.pos[1]);
-            if d > 0.0 && d < r * r {
+            if d > 0.0 && d < viewR * viewR {
                 steer[0] += other.vel[0];
                 steer[1] += other.vel[1];
                 count += 1;
@@ -118,7 +119,7 @@ impl Boid {
         let mut count = 0;
         for other in boids {
             let d = (self.pos[0] - other.pos[0]) * (self.pos[0] - other.pos[0]) + (self.pos[1] - other.pos[1]) * (self.pos[1] - other.pos[1]);
-            if d > 0.0 && d < r * r {
+            if d > 0.0 && d < viewR * viewR {
                 steer[0] += other.pos[0];
                 steer[1] += other.pos[1];
                 count += 1;

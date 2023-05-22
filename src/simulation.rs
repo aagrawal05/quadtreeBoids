@@ -29,8 +29,8 @@ impl Simulation {
         ];
 
         let boidsQuadtree = quadtree::Quadtree::<boid::Boid>::new(
-            Bounds{
-                pos: [0, 0],
+            quadtree::Bounds {
+                pos: [0.0, 0.0],
                 size: [windowWidth, windowHeight],
             }
         );
