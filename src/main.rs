@@ -20,12 +20,11 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
 
-pub const windowWidth:f32 = 800.0;
-pub const windowHeight:f32 = 600.0;
+pub const windowWidth:f32 = 1.0; // 800.0;
+pub const windowHeight:f32 = 1.0; // 600.0;
 
 mod boid;
 mod quadtree;
-mod shaders;
 mod pipeline;
 mod simulation;
 mod texture;
@@ -115,16 +114,7 @@ fn main() {
 
     let mut sim = simulation::Simulation::new(10);
 
-    let mut posVec = Vec::new();
-    for b in sim.getBoids() {
-        posVec.push(
-            pipeline::CircleVertex {
-                position: b.pos
-            }
-        )
-    }
-
-    let vertex_buffer = Buffer::from_iter(
+    let mut vertex_buffer = Buffer::from_iter(
         &memory_allocator,
         BufferCreateInfo {
             usage: BufferUsage::VERTEX_BUFFER,
@@ -134,12 +124,16 @@ fn main() {
             usage: MemoryUsage::Upload,
             ..Default::default()
         },
-        posVec.into_iter(),
+        [
+            pipeline::CircleVertex { position: [-0.5, -0.5]}, 
+            pipeline::CircleVertex { position: [0.5, -0.5]},
+            pipeline::CircleVertex { position: [0.0, 0.5]},
+        ].into_iter(),
     )
     .unwrap();
 
-    let vs = shaders::vs::load(device.clone()).expect("failed to create shader module");
-    let fs = shaders::fs::load(device.clone()).expect("failed to create shader module");
+    let vs = pipeline::vs::load(device.clone()).expect("failed to create shader module");
+    let fs = pipeline::fs::load(device.clone()).expect("failed to create shader module");
 
     let mut viewport = Viewport {
         origin: [0.0, 0.0],
@@ -281,6 +275,11 @@ fn main() {
         }
         _ => {
             sim.update(true);
+            let mut count = 0;
+            for b in sim.getBoids() {
+                println!("{}: {:?}", count, b);
+                count += 1;
+            }
         }
     });
 }

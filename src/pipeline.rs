@@ -21,8 +21,28 @@ use vulkano::render_pass::{Framebuffer, FramebufferCreateInfo, RenderPass, Subpa
 use vulkano::shader::ShaderModule;
 use vulkano::swapchain::{ Surface, Swapchain };
 
+pub mod vs {
+    vulkano_shaders::shader! {
+        ty: "vertex",
+        path: "src/shaders/vert.glsl"
+    }
+}
 
-#[derive(BufferContents, Vertex)]
+pub mod fs {
+    vulkano_shaders::shader! {
+        ty: "fragment",
+        path: "src/shaders/frag.glsl"
+    }
+}
+
+pub mod bs {
+    vulkano_shaders::shader! {
+       ty: "fragment",
+       path: "src/shaders/frag.glsl"
+    }
+}
+
+#[derive(BufferContents, Vertex, Debug)]
 #[repr(C)]
 pub struct CircleVertex {
     #[format(R32G32_SFLOAT)]

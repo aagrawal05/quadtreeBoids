@@ -4,14 +4,14 @@ use crate::quadtree;
 //TODO: Move to window creation
 
 const maxForce:f32 = 0.03;
-const maxSpeed:f32 = 2.0;
+const maxSpeed:f32 = 0.1;
 const sepCoef:f32 = 1.5;
 const aliCoef:f32 = 1.0;
 const cohCoef:f32 = 1.0;
-const sizeR:f32 = 2.0;
+const sizeR:f32 = 0.01;
 pub const viewR:f32 = 5.0;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct Boid
 {
     pub pos: [f32; 2],
@@ -42,6 +42,7 @@ impl Boid {
         self.acc[1] = 0.0;
         self.pos[0] += self.vel[0];
         self.pos[1] += self.vel[1];
+        self.borders();
     }
 
     fn flock(&mut self, boids: Vec<&Boid>) {
@@ -66,6 +67,7 @@ impl Boid {
             self.pos[1] = -sizeR;
         }
     }
+
     fn separate(&self, boids: Vec<&Boid>) -> [f32; 2] {
         let mut steer = [0.0; 2];
         let mut count = 0;
@@ -92,6 +94,7 @@ impl Boid {
         }
         steer
     }
+
     fn align(&self, boids: Vec<&Boid>) -> [f32; 2] {
         let mut steer = [0.0; 2];
         let mut count = 0;
@@ -114,6 +117,7 @@ impl Boid {
         }
         steer
     }
+
     fn cohesion(&self, boids:  Vec<&Boid>) -> [f32; 2] {
         let mut steer = [0.0; 2];
         let mut count = 0;
