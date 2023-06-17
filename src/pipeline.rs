@@ -24,21 +24,27 @@ use vulkano::swapchain::{ Surface, Swapchain };
 pub mod vs {
     vulkano_shaders::shader! {
         ty: "vertex",
-        path: "src/shaders/vert.glsl"
+        path: "src/shaders/boidVert.glsl"
     }
 }
+
+pub mod tse {
+    vulkano_shaders::shader! {
+        ty: "tess_ctrl",
+        path: "src/shaders/boidTessEval.glsl"
+    }
+
+    vulkano_shaders::shader! {
+        ty: "tess_eval",
+        path: "src/shaders/boidTessCtrl.glsl"
+    }
+}
+
 
 pub mod fs {
     vulkano_shaders::shader! {
         ty: "fragment",
-        path: "src/shaders/frag.glsl"
-    }
-}
-
-pub mod bs {
-    vulkano_shaders::shader! {
-       ty: "fragment",
-       path: "src/shaders/frag.glsl"
+        path: "src/shaders/boidFrag.glsl"
     }
 }
 

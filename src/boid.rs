@@ -1,5 +1,6 @@
 use crate::{windowWidth, windowHeight};
 use crate::quadtree;
+// use crate::InstaceUniform;
 
 //TODO: Move to window creation
 
@@ -10,6 +11,10 @@ const aliCoef:f32 = 1.0;
 const cohCoef:f32 = 1.0;
 const sizeR:f32 = 0.01;
 pub const viewR:f32 = 5.0;
+
+fn dir(vector: [f32; 2]) -> f32 {
+    vector[1].atan2(vector[0])
+}
 
 #[derive(Clone, Copy, Debug)]
 pub struct Boid
@@ -28,6 +33,19 @@ impl quadtree::ContainsBounds for Boid {
     }
 }
 impl Boid { 
+
+    // pub fn instanceUniform (&self) {
+    //     let heading: f32 = dir(self.vel);
+    //     InstanceUniform {
+    //         translationMatrix: [[1, 0,],
+    //                             [0, 1,],
+    //                             [self.pos[0], self.pos[1]]],
+
+    //         rotationMatrix: [[heading.cos(), -heading.sin()],
+    //                          [heading.sin(), heading.cos()]],
+    //     }
+    // }
+
     pub fn update(&mut self, boids: Vec<&Boid>) {
         self.flock(boids);
         self.update_self();

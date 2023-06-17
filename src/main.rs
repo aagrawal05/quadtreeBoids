@@ -2,9 +2,7 @@ use std::sync::Arc;
 
 use vulkano::buffer::{Buffer, BufferCreateInfo, BufferUsage};
 use vulkano::command_buffer::allocator::StandardCommandBufferAllocator;
-use vulkano::device::{
-    Device, DeviceCreateInfo, DeviceExtensions, QueueCreateInfo,
-};
+use vulkano::device::{Device, DeviceCreateInfo, DeviceExtensions, QueueCreateInfo};
 use vulkano::image::{ImageUsage};
 use vulkano::instance::{Instance, InstanceCreateInfo};
 use vulkano::memory::allocator::{AllocationCreateInfo, MemoryUsage, StandardMemoryAllocator};
@@ -19,9 +17,10 @@ use vulkano_win::VkSurfaceBuild;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
+use winit::dpi::LogicalSize;
 
-pub const windowWidth:f32 = 1.0; // 800.0;
-pub const windowHeight:f32 = 1.0; // 600.0;
+pub const windowWidth:f32 = 800.0;
+pub const windowHeight:f32 = 600.0;
 
 mod boid;
 mod quadtree;
@@ -55,6 +54,8 @@ fn main() {
         .unwrap();
 
     window.set_title("boids");
+    window.set_inner_size(LogicalSize::new(windowWidth, windowHeight));
+
 
     let device_extensions = DeviceExtensions {
         khr_swapchain: true,
@@ -114,7 +115,7 @@ fn main() {
 
     let mut sim = simulation::Simulation::new(10);
 
-    let mut vertex_buffer = Buffer::from_iter(
+    let vertex_buffer = Buffer::from_iter(
         &memory_allocator,
         BufferCreateInfo {
             usage: BufferUsage::VERTEX_BUFFER,
@@ -132,8 +133,8 @@ fn main() {
     )
     .unwrap();
 
-    let vs = pipeline::vs::load(device.clone()).expect("failed to create shader module");
-    let fs = pipeline::fs::load(device.clone()).expect("failed to create shader module");
+    let vs = pipeline::vs::load(device.clone()).expect("failed to create vertex shader");
+    let fs = pipeline::fs::load(device.clone()).expect("failed to create fragment shader");
 
     let mut viewport = Viewport {
         origin: [0.0, 0.0],

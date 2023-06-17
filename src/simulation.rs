@@ -1,13 +1,18 @@
-// Simulation and controller for the boids
-// instantiated in main.rs and used to control
-// contains boid compute mainloop, and manages
-// the boids' data
+// // Simulation and controller for the boids
+// // instantiated in main.rs and used to control
+// // contains boid compute mainloop, and manages
+// // the boids' data
+// use vulkano::buffer::{Buffer, BufferCreateInfo, BufferUsage};
+// use vulkano::command_buffer::allocator::StandardCommandBufferAllocator;
+// use vulkano::device::{ Device, DeviceCreateInfo, DeviceExtensions, QueueCreateInfo};
+// use vulkano::memory::allocator::AllocationCreateInfo;
 
 use rand::prelude::*;
 
 use crate::{windowWidth, windowHeight};
 use crate::boid;
 use crate::quadtree;
+use crate::pipeline::CircleVertex;
 
 pub struct Simulation {
     pub size: i32,
@@ -64,5 +69,41 @@ impl Simulation {
 
     pub fn getBoids(&self) -> &Vec<boid::Boid> {
         &self.boids
+    }
+
+    //pub fn getBoidsBuffer(&self){
+    //    vertexList = Vec::new();
+    //    //Add bounding box
+    //    for b in self.boids.iter() {
+    //        CircleVertex {
+    //            position: [b.pos[0], b.pos[1]],
+    //        }
+    //    }
+    //    Buffer::from_iter(
+    //        &memory_allocator,
+    //        BufferCreateInfo {
+    //            usage: BufferUsage::VERTEX_BUFFER,
+    //            ..Default::default()
+    //        },
+    //        AllocationCreateInfo {
+    //            usage: MemoryUsage::Upload,
+    //            ..Default::default()
+    //        },
+    //        [
+    //            CircleVertex { position: [-0.5, -0.5]}, 
+    //            CircleVertex { position: [0.5, -0.5]},
+    //            pipeline::CircleVertex { position: [0.0, 0.5]},
+    //        ].into_iter(),
+    //    ).unwrap();
+    //}
+
+    pub fn drawGrid(&self, naive: bool) {
+        if naive {
+            // Naive implementation
+            // TODO: draw grid
+        } else {
+            // Using quadtrees
+            // TODO: draw sparse grid
+        }
     }
 }
