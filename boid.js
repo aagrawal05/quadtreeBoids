@@ -1,5 +1,4 @@
 class Boid {
-	static visualRange=25;
 	static maxSpeed=5;
 	static maxForce=0.2;
 	static r=2;
@@ -47,12 +46,13 @@ class Boid {
 		for (let other of boids){
 			let d = this.position.dist(other.position);
 			let diff = p5.Vector.sub(this.position, other.position);
-			diff.div(d);
+			diff.div(d * d);
 			steering.add(diff);
 			total++;
 		}
 		if (total > 0){
 			steering.div(total);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
 			steering.limit(Boid.maxForce);
 		}
@@ -68,6 +68,7 @@ class Boid {
 		}
 		if (total > 0){
 			steering.div(total);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
 			steering.limit(Boid.maxForce);
 		}
