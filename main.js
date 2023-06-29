@@ -1,24 +1,24 @@
 const maxDepth = 5,
-	  maxChildren = 4,
-	  population = 100;
+	  maxChildren = 1;
 
 let boids,
+	boidsQuadTree,
 	alignSlider,
 	cohesionSlider,
 	separationSlider;
 
-let isNaive = true;
+let isNaive = false;
 
 function initBoids(naive) {
-	if (naive) {
-		boids = [];
-		for (let i = 0; i < population; i++) {
-			boids.push(new Boid());
-		}
-	} else {
-		boids = new QuadTree(maxDepth, maxChildren, new Rect(0, 0, width, height));
-		for (let i = 0; i < population; i++) {
-			boids.insert(new Boid());
+	boids = [];
+	if (!naive) {
+		boidsQuadTree = new QuadTree(width, height, maxDepth);
+	}
+	for (let i = 0; i < populationSlider.value(); i++) {
+		let tmpBoid = new Boid();
+		boids.push(tmpBoid);
+		if (!naive) {
+			boidsQuadTree.insert(tmpBoid);
 		}
 	}
 }
@@ -41,19 +41,28 @@ function updateBoids(naive) {
 
 		for (let i = 0; i < boids.length; i++) {
 			boids[i].flock(visibleBoids[i]);
+			boids[i].update();
 			boids[i].render(true);
 		}
+
 	} else {
-		for (let i = 0; i < boids.nodes.length; i++) {
-			let visibleBoids = boids.queryRadius(boids.nodes[i].position, visionSlider.value());
-			boids[i].flock(visibleBoids);
-			boids[i].render(true);
+		for (let boid of boids) {
+			boid.flock(boidsQuadTree.query(boid, visionSlider.value()));
+			boid.update();
+			boid.render(true);
 		}
+
+		boidsQuadTree.render();
+		
+		// Regenerate quadtree
+		boidsQuadTree.root = new QuadTreeNode(new Rect(0, 0, width, height));
+		for (let boid of boids)
+			boidsQuadTree.insert(boid);
 	}
 }
 
 function setup() {
-	createCanvas(1080, 720);
+	createCanvas(1080, 720); //TO-DO remove the bounds and allow zooming
 
 	div = createDiv();
 
@@ -72,18 +81,21 @@ function setup() {
 	separationValue = createSpan(separationSlider.value());
 	separationSlider.input(() => separationValue.html(separationSlider.value()));
 
-
 	visionLabel = createP('Vision');
 	visionSlider = createSlider(0, 200, 50, 1);
 	visionValue = createSpan(visionSlider.value());
 	visionSlider.input(() => visionValue.html(visionSlider.value()));
 
-
-	quadtreeCheckbox = createCheckbox('Use Quadtree', false);
+	quadtreeCheckbox = createCheckbox('Use Quadtree', true);
 	quadtreeCheckbox.changed(() => {
 		isNaive = !quadtreeCheckbox.checked();
-		initBoids(isNaive);
+		// initBoids(isNaive);
 	});
+
+	populationLabel = createP('Population');
+	populationSlider = createSlider(0, 5000, 100, 1);
+	populationValue = createSpan(populationSlider.value());
+	populationSlider.input(() => populationValue.html(populationSlider.value()));
 
 	resetButton = createButton('Reset');
 	resetButton.mousePressed(() => {
@@ -110,6 +122,10 @@ function setup() {
 	div.child(createElement('br'));
 	div.child(createElement('br'));
 	div.child(quadtreeCheckbox);
+	div.child(populationLabel);
+	div.child(populationSlider);
+	div.child(populationValue);
+	div.child(createElement('br'));
 	div.child(createElement('br'));
 	div.child(resetButton);
 
@@ -126,4 +142,10 @@ function setup() {
 function draw() {
 	background(220);
 	updateBoids(isNaive);
+	if (mouseIsPressed) {
+		if (mouseX < width && mouseY < height) {
+			boids.push(Boid.atPos(mouseX, mouseY));
+		}
+	}
 }
+

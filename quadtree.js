@@ -1,134 +1,131 @@
+class Rect {
+	constructor (x, y, w, h) {
+		this.position = createVector(x, y);
+		this.size = createVector(w, h);
+	}
+
+	intersects (rect) {
+		return (
+			this.position.x < rect.position.x + rect.size.x &&
+			this.position.x + this.size.x > rect.position.x &&
+			this.position.y < rect.position.y + rect.size.y &&
+			this.position.y + this.size.y > rect.position.y
+		);
+	}
+
+	dbgRender () {
+		noFill();
+		stroke(255, 0, 0);
+		strokeWeight(1);
+		rect(this.position.x, this.position.y, this.size.x, this.size.y);
+	}
+}
+
 class QuadTree {
-	constructor (maxDepth, maxChildren, bounds, depth = 0) {
-		this.bounds = bounds;
+	constructor (width, height, maxDepth) {
 		this.maxDepth = maxDepth;
-		this.maxChildren = maxChildren;
-		this.depth = depth;
-		this.children = [];
-		this.nodes = [];
+		this.root = new QuadTreeNode(new Rect(0, 0, width, height));
 	}
 
 	insert (item) {
-		if (this.nodes.length) {
-			const index = this._findIndex(item);
-			this.nodes[index].insert(item);
-			return;
-		}
-
-		this.children.push(item);
-
-		const len = this.children.length;
-		if (len > this.maxChildren && this.depth < this.maxDepth) {
-			this.subdivide();
-
-			for (let i = 0; i < len; i++) {
-				this.insert(this.children[i]);
-			}
-
-			this.children.length = 0;
-		}
-	}
-
-	queryRadius (pos, radius) {
-		// Walk the tree
-		const results = [];
-		for (let i = 0; i < this.nodes.length; i++) {
-			const node = this.nodes[i];
-			const dx = node.bounds.x - pos.x;
-			const dy = node.bounds.y - pos.y;
-			const dist = Math.sqrt(dx * dx + dy * dy);
-
-			if (dist < radius) {
-				results.push(...node.queryRadius(pos, radius));
-			}
-		}
-
-		return results;
-	}
-
-	queryBounds (bounds) {
-		const results = [];
-
-		if (this.nodes.length) {
-			this.nodes.forEach(node => {
-				if (node.bounds.x > bounds.x + bounds.w || node.bounds.x + node.bounds.w < bounds.x || node.bounds.y > bounds.y + bounds.h || node.bounds.y + node.bounds.h < bounds.y) {
-					return;
+		let currentNode = this.root;
+		while (currentNode.depth < this.maxDepth) {
+			if (item.position.x > currentNode.bounds.position.x + currentNode.bounds.size.x / 2) { // right
+				if (item.position.y < currentNode.bounds.position.y + currentNode.bounds.size.y / 2) { // top
+					if (currentNode.topRight === null)
+						currentNode.topRight = new QuadTreeNode(new Rect(currentNode.bounds.position.x + currentNode.bounds.size.x / 2,
+																		 currentNode.bounds.position.y, 
+																		 currentNode.bounds.size.x / 2, 
+																		 currentNode.bounds.size.y / 2), currentNode.depth + 1);
+					currentNode = currentNode.topRight;
+				} else { 
+					if (currentNode.bottomRight === null)
+						currentNode.bottomRight = new QuadTreeNode(new Rect(currentNode.bounds.position.x + currentNode.bounds.size.x / 2,
+																		    currentNode.bounds.position.y + currentNode.bounds.size.y / 2, 
+																		    currentNode.bounds.size.x / 2, 
+																		    currentNode.bounds.size.y / 2), currentNode.depth + 1);
+					currentNode = currentNode.bottomRight;
 				}
-
-				results.push(...node.queryBounds(bounds));
-			});
-		}
-
-		const len = this.children.length;
-		for (let i = 0; i < len; i++) {
-			const child = this.children[i];
-			if (child !== undefined) {
-				if (child.x > bounds.x && child.x < bounds.x + bounds.w && child.y > bounds.y && child.y < bounds.y + bounds.h) {
-					results.push(child);
+			} else { // left
+				if (item.position.y < currentNode.bounds.position.y + currentNode.bounds.size.y / 2) { // top
+					if (currentNode.topLeft === null)
+						currentNode.topLeft = new QuadTreeNode(new Rect(currentNode.bounds.position.x,
+																	    currentNode.bounds.position.y, 
+																	    currentNode.bounds.size.x / 2, 
+																	    currentNode.bounds.size.y / 2), currentNode.depth + 1);
+					currentNode = currentNode.topLeft;
+				}
+				else {
+					if (currentNode.bottomLeft === null)
+						currentNode.bottomLeft = new QuadTreeNode(new Rect(currentNode.bounds.position.x,
+																		   currentNode.bounds.position.y + currentNode.bounds.size.y / 2,
+																		   currentNode.bounds.size.x / 2, 
+																		   currentNode.bounds.size.y / 2), currentNode.depth + 1);
+					currentNode = currentNode.bottomLeft;
 				}
 			}
 		}
-
-		return results;
+		currentNode.children.push(item);
 	}
 
-	subdivide () {
-		const depth = this.depth + 1;
-		const bx = this.bounds.x;
-		const by = this.bounds.y;
-		const b_w_h = (this.bounds.w / 2) | 0;
-		const b_h_h = (this.bounds.h / 2) | 0;
-
-		this.nodes[0] = new QuadTree(this.maxDepth, this.maxChildren, new Rect(bx, by, b_w_h, b_h_h), depth);
-		this.nodes[1] = new QuadTree(this.maxDepth, this.maxChildren, new Rect(bx + b_w_h, by, b_w_h, b_h_h), depth);
-		this.nodes[2] = new QuadTree(this.maxDepth, this.maxChildren, new Rect(bx, by + b_h_h, b_w_h, b_h_h), depth);
-		this.nodes[3] = new QuadTree(this.maxDepth, this.maxChildren, new Rect(bx + b_w_h, by + b_h_h, b_w_h, b_h_h), depth);
-	}
-
-	clear () {
-		this.children.length = 0;
-
-		const len = this.nodes.length;
-		for (let i = 0; i < len; i++) {
-			this.nodes[i].clear();
-		}
-
-		this.nodes.length = 0;
-	}
-
-
-	_findIndex (item) {
-		const b = this.bounds;
-		const left = (item.x > b.x + b.w / 2) ? false : true;
-		const top = (item.y > b.y + b.h / 2) ? false : true;
-
-		let index = 0;
-		if (left) {
-			if (!top) {
-				index = 2;
-			}
-		} else {
-			if (top) {
-				index = 1;
-			} else {
-				index = 3;
-			}
-		}
-
-		return index;
+	query (boid, radius) {
+		const boundingRect = new Rect(boid.position.x - radius, boid.position.y - radius, radius * 2, radius * 2);
+		return this.root.query(boid, boundingRect, radius);
 	}
 
 	render () {
-		// Draw the subdivide lines
+		this.root.render();
+	}
+}
+class QuadTreeNode {
+	constructor (bounds, depth = 0) {
+		this.maxDepth = maxDepth;
+		this.bounds = bounds;
+		this.depth = depth;
+		this.children = [];
+			
+		this.topLeft = null;
+		this.topRight = null;
+		this.bottomLeft = null;
+		this.bottomRight = null;
+	}
+
+	query(boid, rect, radius) {
+		const results = [];
+
+		//rect.dbgRender();
+
+		if (this.bounds.intersects(rect)) {
+			if (this.depth === this.maxDepth)
+				results.push(...(this.children.filter(child => dist(child.position.x, child.position.y, boid.position.x, boid.position.y) < radius && child != boid)));
+			else {
+				if (this.topLeft !== null)
+					results.push(...this.topLeft.query(boid, rect, radius));
+				if (this.topRight !== null)
+					results.push(...this.topRight.query(boid, rect, radius));
+				if (this.bottomLeft !== null)
+					results.push(...this.bottomLeft.query(boid, rect, radius));
+				if (this.bottomRight !== null)
+					results.push(...this.bottomRight.query(boid, rect, radius));
+			}
+		}
+		return results;
+	}
+
+	render () {
+
+		noFill();
 		stroke(255);
 		strokeWeight(1);
-		noFill();
-		rect(this.bounds.x, this.bounds.y, this.bounds.w, this.bounds.h);
+		rect(this.bounds.position.x, this.bounds.position.y, this.bounds.size.x, this.bounds.size.y);
 
-		// Walk the tree
-		const len = this.nodes.length;
-		for (let i = 0; i < len; i++) {
-			this.nodes[i].render();
-		}
+		if (this.topLeft !== null)
+			this.topLeft.render();
+		if (this.topRight !== null)
+			this.topRight.render();
+		if (this.bottomLeft !== null)
+			this.bottomLeft.render();
+		if (this.bottomRight !== null)
+			this.bottomRight.render();
 	}
 }

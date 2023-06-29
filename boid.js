@@ -3,13 +3,20 @@ class Boid {
 	static maxForce=0.2;
 	static r=2;
 
-	constructor (){
+	constructor(){
 		this.position = createVector(random(width), random(height));
 		this.velocity = p5.Vector.random2D();
 		this.velocity.setMag(random(2,4));
 		this.acceleration = createVector();
 	}
-	
+
+	static atPos(x, y){
+		let b = new Boid();
+		b.position.x = x;
+		b.position.y = y;
+		return b;
+	}
+
 	edges(){
 		if (this.position.x > width){
 			this.position.x = 0;
@@ -86,7 +93,6 @@ class Boid {
 		this.acceleration.add(cohesion);
 		this.acceleration.add(separation);
 		this.acceleration.add(alignment);
-		this.update();
 	}
 
 	update(){
@@ -116,5 +122,12 @@ class Boid {
 			stroke(0);
 			point(this.position.x, this.position.y);
 		}
+	}
+	clone () {
+		let b = new Boid();
+		b.position = this.position.copy();
+		b.velocity = this.velocity.copy();
+		b.acceleration = this.acceleration.copy();
+		return b;
 	}
 }
