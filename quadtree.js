@@ -17,19 +17,24 @@ class Rect {
 		noFill();
 		stroke(255, 0, 0);
 		strokeWeight(1);
-		rect(this.position.x, this.position.y, this.size.x, this.size.y);
+
+		ellipse(
+			this.position.x + this.size.x / 2,
+			this.position.y + this.size.y / 2,
+			this.size.x,
+			this.size.y
+		);
 	}
 }
 
 class QuadTree {
-	constructor (width, height, maxDepth) {
-		this.maxDepth = maxDepth;
+	constructor (width, height) {
 		this.root = new QuadTreeNode(new Rect(0, 0, width, height));
 	}
 
 	insert (item) {
 		let currentNode = this.root;
-		while (currentNode.depth < this.maxDepth) {
+		while (currentNode.depth < maxDepthSlider.value()) {
 			if (item.position.x > currentNode.bounds.position.x + currentNode.bounds.size.x / 2) { // right
 				if (item.position.y < currentNode.bounds.position.y + currentNode.bounds.size.y / 2) { // top
 					if (currentNode.topRight === null)
@@ -68,9 +73,9 @@ class QuadTree {
 		currentNode.children.push(item);
 	}
 
-	query (boid, radius) {
+	query (boid, radius, showQuery) {
 		const boundingRect = new Rect(boid.position.x - radius, boid.position.y - radius, radius * 2, radius * 2);
-		return this.root.query(boid, boundingRect, radius);
+		return this.root.query(boid, boundingRect, radius, showQuery);
 	}
 
 	render () {
@@ -79,7 +84,6 @@ class QuadTree {
 }
 class QuadTreeNode {
 	constructor (bounds, depth = 0) {
-		this.maxDepth = maxDepth;
 		this.bounds = bounds;
 		this.depth = depth;
 		this.children = [];
@@ -90,30 +94,29 @@ class QuadTreeNode {
 		this.bottomRight = null;
 	}
 
-	query(boid, rect, radius) {
+	query(boid, rect, radius, showQuery) {
 		const results = [];
-
-		//rect.dbgRender();
+		
+		if (showQuery) rect.dbgRender();
 
 		if (this.bounds.intersects(rect)) {
-			if (this.depth === this.maxDepth)
+			if (this.depth === maxDepthSlider.value())
 				results.push(...(this.children.filter(child => dist(child.position.x, child.position.y, boid.position.x, boid.position.y) < radius && child != boid)));
 			else {
 				if (this.topLeft !== null)
-					results.push(...this.topLeft.query(boid, rect, radius));
+					results.push(...this.topLeft.query(boid, rect, radius, showQuery));
 				if (this.topRight !== null)
-					results.push(...this.topRight.query(boid, rect, radius));
+					results.push(...this.topRight.query(boid, rect, radius, showQuery));
 				if (this.bottomLeft !== null)
-					results.push(...this.bottomLeft.query(boid, rect, radius));
+					results.push(...this.bottomLeft.query(boid, rect, radius, showQuery));
 				if (this.bottomRight !== null)
-					results.push(...this.bottomRight.query(boid, rect, radius));
+					results.push(...this.bottomRight.query(boid, rect, radius, showQuery));
 			}
 		}
 		return results;
 	}
 
 	render () {
-
 		noFill();
 		stroke(255);
 		strokeWeight(1);

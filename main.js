@@ -1,25 +1,25 @@
-const maxDepth = 5,
-	  maxChildren = 1;
 
 let boids,
 	boidsQuadTree,
 	alignSlider,
 	cohesionSlider,
-	separationSlider;
+	separationSlider,
+	maxDepthSlider,
+	fps;
 
-let isNaive = false;
+let isNaive = false,
+	showQuadtreeGrid = true,
+	showQuadtreeQuery = false;
 
 function initBoids(naive) {
 	boids = [];
-	if (!naive) {
-		boidsQuadTree = new QuadTree(width, height, maxDepth);
-	}
+	if (!naive)
+		boidsQuadTree = new QuadTree(width, height);
 	for (let i = 0; i < populationSlider.value(); i++) {
 		let tmpBoid = new Boid();
 		boids.push(tmpBoid);
-		if (!naive) {
+		if (!naive)
 			boidsQuadTree.insert(tmpBoid);
-		}
 	}
 }
 
@@ -47,12 +47,13 @@ function updateBoids(naive) {
 
 	} else {
 		for (let boid of boids) {
-			boid.flock(boidsQuadTree.query(boid, visionSlider.value()));
+			boid.flock(boidsQuadTree.query(boid, visionSlider.value(), showQuadtreeQuery));
 			boid.update();
 			boid.render(true);
 		}
-
-		boidsQuadTree.render();
+		
+		if (showQuadtreeGrid)
+			boidsQuadTree.render();
 		
 		// Regenerate quadtree
 		boidsQuadTree.root = new QuadTreeNode(new Rect(0, 0, width, height));
@@ -86,10 +87,26 @@ function setup() {
 	visionValue = createSpan(visionSlider.value());
 	visionSlider.input(() => visionValue.html(visionSlider.value()));
 
+	maxDepthLabel = createP('Max Depth');
+	maxDepthSlider = createSlider(0, 10, 5, 1);
+	maxDepthValue = createSpan(maxDepthSlider.value());
+	maxDepthSlider.input(() => maxDepthValue.html(maxDepthSlider.value()));
+
 	quadtreeCheckbox = createCheckbox('Use Quadtree', true);
 	quadtreeCheckbox.changed(() => {
 		isNaive = !quadtreeCheckbox.checked();
-		// initBoids(isNaive);
+		quadtreeGridCheckbox.style('visibility', isNaive ? 'hidden' : 'visible');
+		quadtreeQueryCheckbox.style('visibility', isNaive ? 'hidden' : 'visible');
+	});
+		
+	quadtreeGridCheckbox = createCheckbox('Show Quadtree Grid', true);
+	quadtreeGridCheckbox.changed(() => {
+		showQuadtreeGrid = quadtreeGridCheckbox.checked();
+	});
+
+	quadtreeQueryCheckbox = createCheckbox('Show Quadtree Queries', false);
+	quadtreeQueryCheckbox.changed(() => {
+		showQuadtreeQuery = quadtreeQueryCheckbox.checked();
 	});
 
 	populationLabel = createP('Population');
@@ -102,6 +119,22 @@ function setup() {
 		initBoids(isNaive);
 	});
 
+	pausePlayButton = createButton('Pause');
+	pausePlayButton.mousePressed(() => {
+		if (pausePlayButton.html() == 'Pause') {
+			noLoop();
+			pausePlayButton.html('Play');
+		} else {
+			loop();
+			pausePlayButton.html('Pause');
+		}
+	});
+
+	// TODO: Profiler
+	// fps = frameRate();
+	// fpsLabel = createP('FPS');
+	// fpsValue = createSpan(fps);
+	// fps.onchange = () => fpsValue.html(fps);
 
 	div.child(alignLabel);
 	div.child(alignSlider);
@@ -121,13 +154,24 @@ function setup() {
 
 	div.child(createElement('br'));
 	div.child(createElement('br'));
+
 	div.child(quadtreeCheckbox);
+	div.child(quadtreeGridCheckbox);
+	div.child(quadtreeQueryCheckbox);
+
 	div.child(populationLabel);
 	div.child(populationSlider);
 	div.child(populationValue);
+
+	div.child(maxDepthLabel);
+	div.child(maxDepthSlider);
+	div.child(maxDepthValue);
+
 	div.child(createElement('br'));
 	div.child(createElement('br'));
+
 	div.child(resetButton);
+	div.child(pausePlayButton);
 
 	div.position(width+30, 0);
 
@@ -145,6 +189,8 @@ function draw() {
 	if (mouseIsPressed) {
 		if (mouseX < width && mouseY < height) {
 			boids.push(Boid.atPos(mouseX, mouseY));
+			populationSlider.value(populationSlider.value() + 1);
+			populationValue.html(populationSlider.value());
 		}
 	}
 }
