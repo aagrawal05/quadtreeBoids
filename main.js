@@ -1,15 +1,18 @@
-
 let boids,
 	boidsQuadTree,
 	alignSlider,
 	cohesionSlider,
 	separationSlider,
 	maxDepthSlider,
-	fps;
+	profilerDisplay,
+	startTime,
+	endTime;
 
-let isNaive = false,
+let profiler = true;
+	isNaive = false,
 	showQuadtreeGrid = true,
-	showQuadtreeQuery = false;
+	showQuadtreeQuery = false,
+	profilingData = [];
 
 function initBoids(naive) {
 	boids = [];
@@ -30,6 +33,7 @@ function updateBoids(naive) {
 			visibleBoids.push([]);
 		}
 
+		profilerDisplay.style('opacity', profiler ? 1 : 0.5);
 		for (let i = 0; i < boids.length; i++) {
 			for (let j = i+1; j < boids.length; j++) {
 				if (boids[i].position.dist(boids[j].position) < visionSlider.value()) {
@@ -65,7 +69,12 @@ function updateBoids(naive) {
 function setup() {
 	createCanvas(1080, 720); //TO-DO remove the bounds and allow zooming
 
-	div = createDiv();
+	profilerCheckbox = createCheckbox('Enable Profiler', profiler);
+	profilerCheckbox.changed(() => {
+		profiler = profilerCheckbox.checked();
+		profilerDisplay.style('opacity', profiler ? 1 : 0.5);
+	});
+	profilerDisplay = createP('Profiling Time: 0ms');
 
 	alignLabel = createP('Alignment');
 	alignSlider = createSlider(0, 5, 1, 0.1);
@@ -130,11 +139,11 @@ function setup() {
 		}
 	});
 
-	// TODO: Profiler
-	// fps = frameRate();
-	// fpsLabel = createP('FPS');
-	// fpsValue = createSpan(fps);
-	// fps.onchange = () => fpsValue.html(fps);
+	div = createDiv();
+
+	div.child(createElement('br'));
+	div.child(profilerCheckbox);
+	div.child(profilerDisplay);
 
 	div.child(alignLabel);
 	div.child(alignSlider);
@@ -159,6 +168,7 @@ function setup() {
 	div.child(quadtreeGridCheckbox);
 	div.child(quadtreeQueryCheckbox);
 
+
 	div.child(populationLabel);
 	div.child(populationSlider);
 	div.child(populationValue);
@@ -173,6 +183,7 @@ function setup() {
 	div.child(resetButton);
 	div.child(pausePlayButton);
 
+
 	div.position(width+30, 0);
 
 	// Paragraph explaining the boids algorithm below the canvas
@@ -181,9 +192,14 @@ function setup() {
 	boidsExplanation.style('width', width+'px');
 
 	initBoids(isNaive);
+
 }
 
 function draw() {
+
+	if (profiler)
+		startTime = performance.now();
+
 	background(220);
 	updateBoids(isNaive);
 	if (mouseIsPressed) {
@@ -193,5 +209,40 @@ function draw() {
 			populationValue.html(populationSlider.value());
 		}
 	}
+
+
+	if (profiler) {
+		endTime = performance.now();
+		displayProfilingResults();
+	}
+}
+
+// Function to display the profiling results
+function displayProfilingResults() {
+  const profilingTime = endTime - startTime;
+  console.log('Profiling Time:', profilingTime.toFixed(2) + 'ms');
+
+  // Add the profiling data to the array
+  profilingData.push({
+    timestamp: new Date().toISOString(),
+    time: profilingTime.toFixed(2) + 'ms'
+  });
+
+  profilerDisplay.html('Profiling Time: ' + profilingTime.toFixed(2) + 'ms');
+}
+
+// Function to save the profiling data to a CSV file
+function saveProfilingData() {
+  const csvData = convertToCSV(profilingData);
+  const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
+  saveAs(blob, 'profiling_data.csv');
+}
+
+// Helper function to convert the data array to CSV format
+function convertToCSV(dataArray) {
+  const header = ['Timestamp', 'Time (ms)'];
+  const rows = dataArray.map(item => [item.timestamp, item.time]);
+  const csvArray = [header, ...rows];
+  return csvArray.map(row => row.join(',')).join('\n');
 }
 
