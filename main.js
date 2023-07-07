@@ -10,6 +10,7 @@ let boids,
 	endTime;
 
 let profiler = true;
+	resetCount = 0;
 	isNaive = false,
 	showQuadtreeGrid = true,
 	showQuadtreeQuery = false,
@@ -70,7 +71,6 @@ function updateBoids(naive) {
 function setup() {
 	createCanvas(1080, 720); //TO-DO remove the bounds and allow zooming
 	createChart();
-
 	profilerCheckbox = createCheckbox('Enable Profiler', profiler);
 	profilerCheckbox.changed(() => {
 		profiler = profilerCheckbox.checked();
@@ -82,6 +82,7 @@ function setup() {
 	});
 	profilerDisplay = createP('Profiling Time: 0ms');
 	profilerChart = document.getElementById('profilerChart');
+	//TO-DO: Checkbox for profilerchart that deletes and re-adds the element
 
 	alignLabel = createP('Alignment');
 	alignSlider = createSlider(0, 5, 1, 0.1);
@@ -220,8 +221,10 @@ function draw() {
 	if (profiler) {
 		endTime = performance.now();
 		displayProfilingResults();
-		if (millis() % 5000 <= 10)
+		if (millis() - resetCount >= 5000){
+			resetCount += 5000;
 			resetChart();
+		}
 	}
 
 }
@@ -259,6 +262,10 @@ function convertToCSV(dataArray) {
 // Function to create the Chart.js chart
 function createChart() {
   const ctx = document.getElementById('chart').getContext('2d');
+  // TO-DO: make the chart fixed size in the x-axis.
+  // Choice: 
+		// Make the effect that the x-axis is scrolling.
+		// Make the effect that the x-axis it loops back to the beginning.
   chart = new Chart(ctx, {
     type: 'line',
     data: {
