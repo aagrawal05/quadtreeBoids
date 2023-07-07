@@ -5,6 +5,7 @@ let boids,
 	separationSlider,
 	maxDepthSlider,
 	profilerDisplay,
+	profilerChart,
 	startTime,
 	endTime;
 
@@ -68,13 +69,19 @@ function updateBoids(naive) {
 
 function setup() {
 	createCanvas(1080, 720); //TO-DO remove the bounds and allow zooming
+	createChart();
 
 	profilerCheckbox = createCheckbox('Enable Profiler', profiler);
 	profilerCheckbox.changed(() => {
 		profiler = profilerCheckbox.checked();
 		profilerDisplay.style('opacity', profiler ? 1 : 0.5);
+		if (!profiler) {
+			saveProfilingData();
+			profilingData = [];
+		}
 	});
 	profilerDisplay = createP('Profiling Time: 0ms');
+	profilerChart = document.getElementById('profilerChart');
 
 	alignLabel = createP('Alignment');
 	alignSlider = createSlider(0, 5, 1, 0.1);
@@ -188,7 +195,7 @@ function setup() {
 
 	// Paragraph explaining the boids algorithm below the canvas
 	let boidsExplanation = createP('The <b>Boids algorithm</b> is a behavioral simulation used to model the flocking behavior of birds. It was developed by Craig Reynolds in 1986. Boids are autonomous agents that follow three simple rules: separation, alignment, and cohesion. Separation ensures that Boids maintain a minimum distance from their neighbors, avoiding collisions. Alignment encourages Boids to align their velocities with nearby Boids, resulting in coordinated movement. Cohesion drives Boids towards the center of mass of their neighbors, promoting group cohesion. By applying these rules iteratively to each Boid, complex flocking behaviors emerge, such as flocking, schooling, or swarming. The Boids algorithm has been widely used in computer graphics, animation, and artificial life simulations.');
-	boidsExplanation.position(15, height);
+	boidsExplanation.position(15, height + 75);
 	boidsExplanation.style('width', width+'px');
 
 	initBoids(isNaive);
@@ -210,25 +217,28 @@ function draw() {
 		}
 	}
 
-
 	if (profiler) {
 		endTime = performance.now();
 		displayProfilingResults();
+		if (millis() % 5000 <= 10)
+			resetChart();
 	}
+
 }
 
 // Function to display the profiling results
 function displayProfilingResults() {
   const profilingTime = endTime - startTime;
-  console.log('Profiling Time:', profilingTime.toFixed(2) + 'ms');
-
+  // console.log('Profiling Time:', profilingTime.toFixed(2) + 'ms');
+		//
   // Add the profiling data to the array
   profilingData.push({
-    timestamp: new Date().toISOString(),
-    time: profilingTime.toFixed(2) + 'ms'
+    timestamp: moment().format('LTS'),
+    time: profilingTime.toFixed(2)
   });
 
   profilerDisplay.html('Profiling Time: ' + profilingTime.toFixed(2) + 'ms');
+  updateChart();
 }
 
 // Function to save the profiling data to a CSV file
@@ -246,3 +256,56 @@ function convertToCSV(dataArray) {
   return csvArray.map(row => row.join(',')).join('\n');
 }
 
+// Function to create the Chart.js chart
+function createChart() {
+  const ctx = document.getElementById('chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Performance',
+        data: [],
+        fill: false,
+        borderColor: '#b8bb26',
+        tension: 0.1
+      }]
+    },
+    options: {
+      responsive: false,
+      maintainAspectRatio: true,
+      scales: {
+        x: {
+          display: false, // Hide the x-axis labels and ticks
+        },
+        y: {
+          display: false, // Hide the y-axis labels and ticks
+        }
+      },
+      plugins: {
+        legend: {
+          display: false // Hide the legend
+        }
+      }
+    }
+  });
+}
+
+// Function to update the Chart.js chart with new data
+function updateChart() {
+  const timestamps = profilingData.map(data => data.timestamp);
+  const times = profilingData.map(data => data.time);
+
+  chart.data.labels = timestamps;
+  chart.data.datasets[0].data = times;
+  chart.update();
+}
+
+// Function to reset the Chart.js chart
+function resetChart() {
+  profilingData = [];
+  chart.data.labels = [];
+  chart.data.datasets[0].data = [];
+  chart.update();
+  millis(0); // Reset the sketch's internal timer
+}
