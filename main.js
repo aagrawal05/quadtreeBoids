@@ -1,3 +1,4 @@
+// TO-DO: Override p5.js css to make the gruvbox theme work.
 let boids,
 	boidsQuadTree,
 	alignSlider,
@@ -79,6 +80,7 @@ function setup() {
 			saveProfilingData();
 			profilingData = [];
 		}
+		// TO-DO: grey out the profiler chart
 	});
 	profilerDisplay = createP('Profiling Time: 0ms');
 	profilerChart = document.getElementById('profilerChart');
