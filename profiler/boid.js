@@ -1,7 +1,8 @@
-const maxSpeed=5;
-const maxForce=0.2;
-
 class Boid {
+	static maxSpeed=5;
+	static maxForce=0.2;
+	static r=2;
+
 	constructor(){
 		this.position = createVector(random(width), random(height));
 		this.velocity = p5.Vector.random2D();
@@ -39,9 +40,9 @@ class Boid {
 		if (total > 0){
 			steering.div(total);
 			steering.sub(this.position);
-			steering.setMag(maxSpeed);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
-			steering.limit(maxForce);
+			steering.limit(Boid.maxForce);
 		}
 		return steering;
 	}
@@ -58,9 +59,9 @@ class Boid {
 		}
 		if (total > 0){
 			steering.div(total);
-			steering.setMag(maxSpeed);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
-			steering.limit(maxForce);
+			steering.limit(Boid.maxForce);
 		}
 		return steering;
 	}
@@ -74,9 +75,9 @@ class Boid {
 		}
 		if (total > 0){
 			steering.div(total);
-			steering.setMag(maxSpeed);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
-			steering.limit(maxForce);
+			steering.limit(Boid.maxForce);
 		}
 		return steering;
 	}
@@ -86,9 +87,9 @@ class Boid {
 		let cohesion = this.cohesion(boids);
 		let separation = this.separate(boids);
 		let alignment = this.align(boids);
-		cohesion.mult(alignSlider.value());
-		separation.mult(separationSlider.value());
-		alignment.mult(cohesionSlider.value());
+		cohesion.mult(ali)
+		separation.mult(sep)
+		alignment.mult(coh)
 		this.acceleration.add(cohesion);
 		this.acceleration.add(separation);
 		this.acceleration.add(alignment);
@@ -97,30 +98,7 @@ class Boid {
 	update(){
 		this.position.add(this.velocity);
 		this.velocity.add(this.acceleration);
-		this.velocity.limit(maxSpeed);
+		this.velocity.limit(Boid.maxSpeed);
 		this.edges();
-	}
-
-	render(drawArrow, size){
-		if (drawArrow) {
-			// Draw a triangle rotated in the direction of velocity
-			let theta = this.velocity.heading() + radians(90);
-			strokeWeight(1);
-			fill(0);
-			stroke(0);
-			push();
-			translate(this.position.x, this.position.y);
-			rotate(theta);
-			beginShape();
-			vertex(0, -size * 2);
-			vertex(-size, size * 2);
-			vertex(size, size * 2);
-			endShape(CLOSE);
-			pop();
-		} else {
-			strokeWeight(2 * size);
-			stroke(0);
-			point(this.position.x, this.position.y);
-		}
 	}
 }

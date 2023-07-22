@@ -34,38 +34,26 @@ class QuadTree {
 
 	insert (item) {
 		let currentNode = this.root;
-		while (currentNode.depth < maxDepthSlider.value()) {
+		while (currentNode.children.length > maxChildrenSlider.value() - 1) {
 			if (item.position.x > currentNode.bounds.position.x + currentNode.bounds.size.x / 2) { // right
 				if (item.position.y < currentNode.bounds.position.y + currentNode.bounds.size.y / 2) { // top
 					if (currentNode.topRight === null)
-						currentNode.topRight = new QuadTreeNode(new Rect(currentNode.bounds.position.x + currentNode.bounds.size.x / 2,
-																		 currentNode.bounds.position.y, 
-																		 currentNode.bounds.size.x / 2, 
-																		 currentNode.bounds.size.y / 2), currentNode.depth + 1);
+						currentNode.subdivide();
 					currentNode = currentNode.topRight;
 				} else { 
 					if (currentNode.bottomRight === null)
-						currentNode.bottomRight = new QuadTreeNode(new Rect(currentNode.bounds.position.x + currentNode.bounds.size.x / 2,
-																		    currentNode.bounds.position.y + currentNode.bounds.size.y / 2, 
-																		    currentNode.bounds.size.x / 2, 
-																		    currentNode.bounds.size.y / 2), currentNode.depth + 1);
+						currentNode.subdivide();
 					currentNode = currentNode.bottomRight;
 				}
 			} else { // left
 				if (item.position.y < currentNode.bounds.position.y + currentNode.bounds.size.y / 2) { // top
 					if (currentNode.topLeft === null)
-						currentNode.topLeft = new QuadTreeNode(new Rect(currentNode.bounds.position.x,
-																	    currentNode.bounds.position.y, 
-																	    currentNode.bounds.size.x / 2, 
-																	    currentNode.bounds.size.y / 2), currentNode.depth + 1);
+						currentNode.subdivide();
 					currentNode = currentNode.topLeft;
 				}
 				else {
 					if (currentNode.bottomLeft === null)
-						currentNode.bottomLeft = new QuadTreeNode(new Rect(currentNode.bounds.position.x,
-																		   currentNode.bounds.position.y + currentNode.bounds.size.y / 2,
-																		   currentNode.bounds.size.x / 2, 
-																		   currentNode.bounds.size.y / 2), currentNode.depth + 1);
+						currentNode.subdivide();
 					currentNode = currentNode.bottomLeft;
 				}
 			}
@@ -94,15 +82,52 @@ class QuadTreeNode {
 		this.bottomRight = null;
 	}
 
+	subdivide () {
+		this.topLeft = new QuadTreeNode(new Rect(this.bounds.position.x,
+												this.bounds.position.y,
+												this.bounds.size.x / 2,
+												this.bounds.size.y / 2), this.depth + 1);
+		this.topRight = new QuadTreeNode(new Rect(this.bounds.position.x + this.bounds.size.x / 2,
+												this.bounds.position.y,
+												this.bounds.size.x / 2,
+												this.bounds.size.y / 2), this.depth + 1);
+		this.bottomLeft = new QuadTreeNode(new Rect(this.bounds.position.x,
+												this.bounds.position.y + this.bounds.size.y / 2,
+												this.bounds.size.x / 2,
+												this.bounds.size.y / 2), this.depth + 1);
+		this.bottomRight = new QuadTreeNode(new Rect(this.bounds.position.x + this.bounds.size.x / 2,
+												this.bounds.position.y + this.bounds.size.y / 2,
+												this.bounds.size.x / 2,
+												this.bounds.size.y / 2), this.depth + 1);
+		this.children.forEach(child => {
+			if (child.position.x > this.bounds.position.x + this.bounds.size.x / 2) { // right
+				if (child.position.y < this.bounds.position.y + this.bounds.size.y / 2) { // top
+					this.topRight.children.push(child);
+				} else {
+					this.bottomRight.children.push(child);
+				}
+			} else { // left
+				if (child.position.y < this.bounds.position.y + this.bounds.size.y / 2) { // top
+					this.topLeft.children.push(child);
+				} else {
+					this.bottomLeft.children.push(child);
+				}
+			}
+		})
+	}
+
 	query(boid, rect, radius, showQuery) {
 		const results = [];
 		
 		if (showQuery) rect.dbgRender();
 
 		if (this.bounds.intersects(rect)) {
-			if (this.depth === maxDepthSlider.value())
+			if ( this.topLeft === null && 
+				 this.topRight === null &&
+				 this.bottomLeft === null &&
+				 this.bottomRight === null) {
 				results.push(...(this.children.filter(child => dist(child.position.x, child.position.y, boid.position.x, boid.position.y) < radius && child != boid)));
-			else {
+			} else {
 				if (this.topLeft !== null)
 					results.push(...this.topLeft.query(boid, rect, radius, showQuery));
 				if (this.topRight !== null)

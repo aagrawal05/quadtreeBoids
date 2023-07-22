@@ -4,7 +4,9 @@ let boids,
 	alignSlider,
 	cohesionSlider,
 	separationSlider,
-	maxDepthSlider,
+	simulationSpeedSlider,
+	boidSizeSlider,
+	drawArrowCheckbox,
 	profilerDisplay,
 	profilerChart,
 	startTime,
@@ -13,6 +15,8 @@ let boids,
 let profiler = true;
 	resetCount = 0;
 	isNaive = false,
+	boidSize = 2,
+	drawArrow = true;
 	showQuadtreeGrid = true,
 	showQuadtreeQuery = false,
 	profilingData = [];
@@ -36,7 +40,6 @@ function updateBoids(naive) {
 			visibleBoids.push([]);
 		}
 
-		profilerDisplay.style('opacity', profiler ? 1 : 0.5);
 		for (let i = 0; i < boids.length; i++) {
 			for (let j = i+1; j < boids.length; j++) {
 				if (boids[i].position.dist(boids[j].position) < visionSlider.value()) {
@@ -49,14 +52,14 @@ function updateBoids(naive) {
 		for (let i = 0; i < boids.length; i++) {
 			boids[i].flock(visibleBoids[i]);
 			boids[i].update();
-			boids[i].render(true);
+			boids[i].render(drawArrow, boidSize);
 		}
 
 	} else {
 		for (let boid of boids) {
 			boid.flock(boidsQuadTree.query(boid, visionSlider.value(), showQuadtreeQuery));
 			boid.update();
-			boid.render(true);
+			boid.render(drawArrow, boidSize);
 		}
 		
 		if (showQuadtreeGrid)
@@ -84,7 +87,21 @@ function setup() {
 	});
 	profilerDisplay = createP('Profiling Time: 0ms');
 	profilerChart = document.getElementById('profilerChart');
+
+
+	simulationSpeedLabel = createP('Simulation Speed');
+	simulationSpeedSlider = createSlider(0.1, 1, 1, 0.1);
+	simulationSpeedSlider.input(() => {
+		frameRate(60 * simulationSpeedSlider.value());
+		simulationSpeedValue.html(simulationSpeedSlider.value().toFixed(2) + 'x');
+	});
+	simulationSpeedValue = createSpan(simulationSpeedSlider.value().toFixed(2) + 'x');
+
 	//TO-DO: Checkbox for profilerchart that deletes and re-adds the element
+	maxChildrenLabel = createP('Max Children');
+	maxChildrenSlider = createSlider(1, 100, 4, 1);
+	maxChildrenSliderValue = createSpan(maxChildrenSlider.value());
+	maxChildrenSlider.input(() => { maxChildrenSliderValue.html(maxChildrenSlider.value()); });
 
 	alignLabel = createP('Alignment');
 	alignSlider = createSlider(0, 5, 1, 0.1);
@@ -106,10 +123,13 @@ function setup() {
 	visionValue = createSpan(visionSlider.value());
 	visionSlider.input(() => visionValue.html(visionSlider.value()));
 
-	maxDepthLabel = createP('Max Depth');
-	maxDepthSlider = createSlider(0, 10, 5, 1);
-	maxDepthValue = createSpan(maxDepthSlider.value());
-	maxDepthSlider.input(() => maxDepthValue.html(maxDepthSlider.value()));
+	boidSizeLabel = createP('Boid Size');
+	boidSizeSlider = createSlider(1, 10, 5, 1);
+	boidSizeValue = createSpan(boidSizeSlider.value());
+	boidSizeSlider.input(() => boidSizeValue.html(boidSizeSlider.value()));
+
+	drawArrowCheckbox = createCheckbox('Draw Arrows', drawArrow);
+	drawArrowCheckbox.changed(() => { drawArrow = drawArrowCheckbox.checked(); });
 
 	quadtreeCheckbox = createCheckbox('Use Quadtree', true);
 	quadtreeCheckbox.changed(() => {
@@ -155,6 +175,15 @@ function setup() {
 	div.child(profilerCheckbox);
 	div.child(profilerDisplay);
 
+	div.child(createElement('br'));
+	div.child(simulationSpeedLabel);
+	div.child(simulationSpeedSlider);
+	div.child(simulationSpeedValue);
+
+	div.child(maxChildrenLabel);
+	div.child(maxChildrenSlider);
+	div.child(maxChildrenSliderValue);
+
 	div.child(alignLabel);
 	div.child(alignSlider);
 	div.child(alignValue);
@@ -174,6 +203,8 @@ function setup() {
 	div.child(createElement('br'));
 	div.child(createElement('br'));
 
+	div.child(drawArrowCheckbox);
+
 	div.child(quadtreeCheckbox);
 	div.child(quadtreeGridCheckbox);
 	div.child(quadtreeQueryCheckbox);
@@ -182,10 +213,6 @@ function setup() {
 	div.child(populationLabel);
 	div.child(populationSlider);
 	div.child(populationValue);
-
-	div.child(maxDepthLabel);
-	div.child(maxDepthSlider);
-	div.child(maxDepthValue);
 
 	div.child(createElement('br'));
 	div.child(createElement('br'));
@@ -297,6 +324,7 @@ function createChart() {
         }
       }
     }
+
   });
 }
 
