@@ -1,7 +1,7 @@
 // TO-DO: Override p5.js css to make the gruvbox theme work.
 let boids, boidsQuadTree, profilerDisplay, profilerChart, startTime, endTime;
 
-let profiler = true;
+let profiler = true; //TO-DO: make profiler consistent with changes in simulation speed
 resetCount = 0;
 (isNaive = false), (boidSize = 2), (drawArrow = true);
 useCircleQuery = true;
@@ -52,7 +52,7 @@ function updateBoids(naive) {
         for (let i = 0; i < boids.length; i++) {
             boids[i].flock(visibleBoids[i]);
             boids[i].update();
-            boids[i].render(drawArrow, boidSize);
+            boids[i].render(drawArrow, boidSizeSlider.value());
         }
     } else {
         for (let boid of boids) {
@@ -65,7 +65,7 @@ function updateBoids(naive) {
                 )
             );
             boid.update();
-            boid.render(drawArrow, boidSize);
+            boid.render(drawArrow, boidSizeSlider.value());
         }
 
         if (showQuadtreeGrid) boidsQuadTree.render();
@@ -110,7 +110,15 @@ function setup() {
     });
 
     //TO-DO: Checkbox for profilerchart that deletes and re-adds the element
-    maxChildrenLabel = createP("Max Children");
+
+	maxDepthLabel = createP("Max Depth");
+	maxDepthSlider = createSlider(-1, 25, 10, 1);
+	maxDepthValue = createSpan(maxDepthSlider.value());
+	maxDepthSlider.input(() => {
+		maxDepthValue.html(maxDepthSlider.value());
+	});
+
+	maxChildrenLabel = createP("Max Children");
     maxChildrenSlider = createSlider(1, 100, 4, 1);
     maxChildrenSliderValue = createSpan(maxChildrenSlider.value());
     maxChildrenSlider.input(() => {
@@ -142,7 +150,7 @@ function setup() {
     visionSlider.input(() => visionValue.html(visionSlider.value()));
 
     boidSizeLabel = createP("Boid Size");
-    boidSizeSlider = createSlider(1, 10, 5, 1);
+    boidSizeSlider = createSlider(1, 10, boidSize, 1);
     boidSizeValue = createSpan(boidSizeSlider.value());
     boidSizeSlider.input(() => boidSizeValue.html(boidSizeSlider.value()));
 
@@ -175,7 +183,7 @@ function setup() {
     });
 
     populationLabel = createP("Population");
-    populationSlider = createSlider(0, 5000, 2, 1);
+    populationSlider = createSlider(0, 5000, 100, 1);
     populationValue = createSpan(populationSlider.value());
     populationSlider.input(() =>
         populationValue.html(populationSlider.value())
@@ -203,13 +211,16 @@ function setup() {
     div.child(profilerCheckbox);
     div.child(profilerDisplay);
 
-    div.child(createElement("br"));
     div.child(simulationSpeedLabel);
     div.child(simulationSpeedSlider);
     div.child(simulationSpeedValue);
 
-    div.child(createElement("br"));
     div.child(useCircleQueryCheckbox);
+
+	div.child(maxDepthLabel);
+	div.child(maxDepthSlider);
+	div.child(maxDepthValue);
+	div.child(createP("Note that max depth of -1 means no max depth"));
 
     div.child(maxChildrenLabel);
     div.child(maxChildrenSlider);
@@ -231,8 +242,9 @@ function setup() {
     div.child(visionSlider);
     div.child(visionValue);
 
-    div.child(createElement("br"));
-    div.child(createElement("br"));
+	div.child(boidSizeLabel);
+	div.child(boidSizeSlider);
+	div.child(boidSizeValue);
 
     div.child(drawArrowCheckbox);
 
@@ -244,7 +256,6 @@ function setup() {
     div.child(populationSlider);
     div.child(populationValue);
 
-    div.child(createElement("br"));
     div.child(createElement("br"));
 
     div.child(resetButton);
