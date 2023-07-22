@@ -1,12 +1,20 @@
-const maxSpeed=5;
-const maxForce=0.2;
-
 class Boid {
+	static maxSpeed=5;
+	static maxForce=0.2;
+	static r=2;
+
 	constructor(){
 		this.position = createVector(random(width), random(height));
 		this.velocity = p5.Vector.random2D();
 		this.velocity.setMag(random(2,4));
 		this.acceleration = createVector();
+	}
+
+	static atPos(x, y){
+		let b = new Boid();
+		b.position.x = x;
+		b.position.y = y;
+		return b;
 	}
 
 	edges(){
@@ -32,9 +40,9 @@ class Boid {
 		if (total > 0){
 			steering.div(total);
 			steering.sub(this.position);
-			steering.setMag(maxSpeed);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
-			steering.limit(maxForce);
+			steering.limit(Boid.maxForce);
 		}
 		return steering;
 	}
@@ -51,9 +59,9 @@ class Boid {
 		}
 		if (total > 0){
 			steering.div(total);
-			steering.setMag(maxSpeed);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
-			steering.limit(maxForce);
+			steering.limit(Boid.maxForce);
 		}
 		return steering;
 	}
@@ -67,9 +75,9 @@ class Boid {
 		}
 		if (total > 0){
 			steering.div(total);
-			steering.setMag(maxSpeed);
+			steering.setMag(Boid.maxSpeed);
 			steering.sub(this.velocity);
-			steering.limit(maxForce);
+			steering.limit(Boid.maxForce);
 		}
 		return steering;
 	}
@@ -79,9 +87,9 @@ class Boid {
 		let cohesion = this.cohesion(boids);
 		let separation = this.separate(boids);
 		let alignment = this.align(boids);
-		cohesion.mult(ali);
-		separation.mult(sep);
-		alignment.mult(coh);
+		cohesion.mult(ali)
+		separation.mult(sep)
+		alignment.mult(coh)
 		this.acceleration.add(cohesion);
 		this.acceleration.add(separation);
 		this.acceleration.add(alignment);
@@ -90,7 +98,7 @@ class Boid {
 	update(){
 		this.position.add(this.velocity);
 		this.velocity.add(this.acceleration);
-		this.velocity.limit(maxSpeed);
+		this.velocity.limit(Boid.maxSpeed);
 		this.edges();
 	}
 }
