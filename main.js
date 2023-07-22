@@ -1,12 +1,6 @@
 // TO-DO: Override p5.js css to make the gruvbox theme work.
 let boids,
 	boidsQuadTree,
-	alignSlider,
-	cohesionSlider,
-	separationSlider,
-	simulationSpeedSlider,
-	boidSizeSlider,
-	drawArrowCheckbox,
 	profilerDisplay,
 	profilerChart,
 	startTime,
@@ -17,6 +11,7 @@ let profiler = true;
 	isNaive = false,
 	boidSize = 2,
 	drawArrow = true;
+	useCircleQuery = true;
 	showQuadtreeGrid = true,
 	showQuadtreeQuery = false,
 	profilingData = [];
@@ -42,9 +37,18 @@ function updateBoids(naive) {
 
 		for (let i = 0; i < boids.length; i++) {
 			for (let j = i+1; j < boids.length; j++) {
-				if (boids[i].position.dist(boids[j].position) < visionSlider.value()) {
-					visibleBoids[i].push(boids[j]);
-					visibleBoids[j].push(boids[i]);
+				if (useCircleQuery) {
+						if (boids[i].position.dist(boids[j].position) < visionSlider.value()) {
+							visibleBoids[i].push(boids[j]);
+							visibleBoids[j].push(boids[i]);
+						}
+				} else {
+						// check if boid is in the 2*r by 2*r square of the other boid
+						if (Math.abs(boids[i].position.x - boids[j].position.x) < visionSlider.value() &&
+							Math.abs(boids[i].position.y - boids[j].position.y) < visionSlider.value()) {
+							visibleBoids[i].push(boids[j]);
+							visibleBoids[j].push(boids[i]);
+						}
 				}
 			}
 		}
@@ -57,7 +61,7 @@ function updateBoids(naive) {
 
 	} else {
 		for (let boid of boids) {
-			boid.flock(boidsQuadTree.query(boid, visionSlider.value(), showQuadtreeQuery));
+			boid.flock(boidsQuadTree.query(boid, visionSlider.value(), showQuadtreeQuery, useCircleQuery));
 			boid.update();
 			boid.render(drawArrow, boidSize);
 		}
@@ -80,7 +84,6 @@ function setup() {
 		profiler = profilerCheckbox.checked();
 		profilerDisplay.style('opacity', profiler ? 1 : 0.5);
 		if (!profiler) {
-			saveProfilingData();
 			profilingData = [];
 		}
 		// TO-DO: grey out the profiler chart
@@ -96,6 +99,10 @@ function setup() {
 		simulationSpeedValue.html(simulationSpeedSlider.value().toFixed(2) + 'x');
 	});
 	simulationSpeedValue = createSpan(simulationSpeedSlider.value().toFixed(2) + 'x');
+
+	useCircleQueryCheckbox = createCheckbox('Use Circle Query', useCircleQuery);
+	useCircleQueryCheckbox.style('visibility', 'visible');
+	useCircleQueryCheckbox.changed(() => { useCircleQuery = useCircleQueryCheckbox.checked(); });
 
 	//TO-DO: Checkbox for profilerchart that deletes and re-adds the element
 	maxChildrenLabel = createP('Max Children');
@@ -137,7 +144,8 @@ function setup() {
 		quadtreeGridCheckbox.style('visibility', isNaive ? 'hidden' : 'visible');
 		quadtreeQueryCheckbox.style('visibility', isNaive ? 'hidden' : 'visible');
 	});
-		
+	
+
 	quadtreeGridCheckbox = createCheckbox('Show Quadtree Grid', true);
 	quadtreeGridCheckbox.changed(() => {
 		showQuadtreeGrid = quadtreeGridCheckbox.checked();
@@ -149,7 +157,7 @@ function setup() {
 	});
 
 	populationLabel = createP('Population');
-	populationSlider = createSlider(0, 5000, 100, 1);
+	populationSlider = createSlider(0, 5000, 2, 1);
 	populationValue = createSpan(populationSlider.value());
 	populationSlider.input(() => populationValue.html(populationSlider.value()));
 
@@ -179,6 +187,9 @@ function setup() {
 	div.child(simulationSpeedLabel);
 	div.child(simulationSpeedSlider);
 	div.child(simulationSpeedValue);
+
+	div.child(createElement('br'));
+	div.child(useCircleQueryCheckbox);
 
 	div.child(maxChildrenLabel);
 	div.child(maxChildrenSlider);
@@ -271,21 +282,6 @@ function displayProfilingResults() {
 
   profilerDisplay.html('Profiling Time: ' + profilingTime.toFixed(2) + 'ms');
   updateChart();
-}
-
-// Function to save the profiling data to a CSV file
-function saveProfilingData() {
-  const csvData = convertToCSV(profilingData);
-  const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8' });
-  saveAs(blob, 'profiling_data.csv');
-}
-
-// Helper function to convert the data array to CSV format
-function convertToCSV(dataArray) {
-  const header = ['Timestamp', 'Time (ms)'];
-  const rows = dataArray.map(item => [item.timestamp, item.time]);
-  const csvArray = [header, ...rows];
-  return csvArray.map(row => row.join(',')).join('\n');
 }
 
 // Function to create the Chart.js chart

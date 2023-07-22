@@ -13,17 +13,34 @@ class Rect {
 		);
 	}
 
-	dbgRender () {
-		noFill();
-		stroke(255, 0, 0);
-		strokeWeight(1);
-
-		ellipse(
-			this.position.x + this.size.x / 2,
-			this.position.y + this.size.y / 2,
-			this.size.x,
-			this.size.y
+	contains (entity) {
+		return (
+			entity.position.x > this.position.x &&
+			entity.position.x < this.position.x + this.size.x &&
+			entity.position.y > this.position.y &&
+			entity.position.y < this.position.y + this.size.y
 		);
+	}
+
+	dbgRender (circle) {
+		if (circle) {
+			noFill();
+			stroke(255, 0, 0);
+			strokeWeight(1);
+
+			ellipse(
+				this.position.x + this.size.x / 2,
+				this.position.y + this.size.y / 2,
+				this.size.x,
+				this.size.y
+			);
+		} else {
+			noFill();
+			stroke(255, 0, 0);
+			strokeWeight(1);
+
+			rect(this.position.x, this.position.y, this.size.x, this.size.y);
+		}
 	}
 }
 
@@ -61,9 +78,9 @@ class QuadTree {
 		currentNode.children.push(item);
 	}
 
-	query (boid, radius, showQuery) {
+	query (boid, radius, showQuery, isCircle) {
 		const boundingRect = new Rect(boid.position.x - radius, boid.position.y - radius, radius * 2, radius * 2);
-		return this.root.query(boid, boundingRect, radius, showQuery);
+		return this.root.query(boid, boundingRect, radius, showQuery, isCircle);
 	}
 
 	render () {
@@ -116,26 +133,29 @@ class QuadTreeNode {
 		})
 	}
 
-	query(boid, rect, radius, showQuery) {
+	query(boid, rect, radius, showQuery, isCircle) {
 		const results = [];
 		
-		if (showQuery) rect.dbgRender();
+		if (showQuery) rect.dbgRender(isCircle);
 
 		if (this.bounds.intersects(rect)) {
 			if ( this.topLeft === null && 
 				 this.topRight === null &&
 				 this.bottomLeft === null &&
 				 this.bottomRight === null) {
-				results.push(...(this.children.filter(child => dist(child.position.x, child.position.y, boid.position.x, boid.position.y) < radius && child != boid)));
+				if (isCircle) 
+					results.push(...(this.children.filter(child => dist(child.position.x, child.position.y, boid.position.x, boid.position.y) < radius && child != boid)));
+				else
+					results.push(...(this.children.filter(child => rect.contains(child) && child != boid)));
 			} else {
 				if (this.topLeft !== null)
-					results.push(...this.topLeft.query(boid, rect, radius, showQuery));
+					results.push(...this.topLeft.query(boid, rect, radius, showQuery, isCircle));
 				if (this.topRight !== null)
-					results.push(...this.topRight.query(boid, rect, radius, showQuery));
+					results.push(...this.topRight.query(boid, rect, radius, showQuery, isCircle));
 				if (this.bottomLeft !== null)
-					results.push(...this.bottomLeft.query(boid, rect, radius, showQuery));
+					results.push(...this.bottomLeft.query(boid, rect, radius, showQuery, isCircle));
 				if (this.bottomRight !== null)
-					results.push(...this.bottomRight.query(boid, rect, radius, showQuery));
+					results.push(...this.bottomRight.query(boid, rect, radius, showQuery, isCircle));
 			}
 		}
 		return results;
