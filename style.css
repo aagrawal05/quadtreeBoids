@@ -4,46 +4,46 @@
 
 /* Main colors */
 :root {
-  --background: #282828;
-  --foreground: #ebdbb2;
-  --color0: #282828;
-  --color1: #cc241d;
-  --color2: #98971a;
-  --color3: #d79921;
-  --color4: #458588;
-  --color5: #b16286;
-  --color6: #689d6a;
-  --color7: #a89984;
-  --color8: #928374;
-  --color9: #fb4934;
-  --color10: #b8bb26;
-  --color11: #fabd2f;
-  --color12: #83a598;
-  --color13: #d3869b;
-  --color14: #8ec07c;
-  --color15: #ebdbb2;
+    --background: #282828;
+    --foreground: #ebdbb2;
+    --color0: #282828;
+    --color1: #cc241d;
+    --color2: #98971a;
+    --color3: #d79921;
+    --color4: #458588;
+    --color5: #b16286;
+    --color6: #689d6a;
+    --color7: #a89984;
+    --color8: #928374;
+    --color9: #fb4934;
+    --color10: #b8bb26;
+    --color11: #fabd2f;
+    --color12: #83a598;
+    --color13: #d3869b;
+    --color14: #8ec07c;
+    --color15: #ebdbb2;
 }
 
 /* General colors */
 body {
-  background-color: var(--background);
-  color: var(--foreground);
-  font-family: "Iosevka", monospace;
-  font-size: 16px;
-  line-height: 1.5;
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: "Iosevka", monospace;
+    font-size: 16px;
+    line-height: 1.5;
 }
 
 a {
-  color: var(--color4);
+    color: var(--color4);
 }
 
 a:hover {
-  color: var(--color4);
-  text-decoration: underline;
+    color: var(--color4);
+    text-decoration: underline;
 }
 
 a:visited {
-  color: var(--color4);
+    color: var(--color4);
 }
 
 h1,
@@ -52,106 +52,106 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: 600;
-  color: var(--color15);
+    font-weight: 600;
+    color: var(--color15);
 }
 
 hr {
-  border: 1px solid var(--color0);
+    border: 1px solid var(--color0);
 }
 
 button {
-  background-color: var(--background);
-  border: 1px solid var(--color0);
-  border-radius: 2px;
-  color: var(--color4);
-  cursor: pointer;
-  font-family: "Iosevka", monospace;
-  font-size: 16px;
-  line-height: 1.5;
-  padding: 8px 12px;
+    background-color: var(--background);
+    border: 1px solid var(--color0);
+    border-radius: 2px;
+    color: var(--color4);
+    cursor: pointer;
+    font-family: "Iosevka", monospace;
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 8px 12px;
 }
 
 button:hover {
-  background-color: var(--color0);
-  color: var(--color15);
+    background-color: var(--color0);
+    color: var(--color15);
 }
 
 button:disabled {
-  background-color: var(--background);
-  border: 1px solid var(--color0);
-  color: var(--color8);
-  cursor: not-allowed;
+    background-color: var(--background);
+    border: 1px solid var(--color0);
+    color: var(--color8);
+    cursor: not-allowed;
 }
 
 button:disabled:hover {
-  background-color: var(--background);
-  color: var(--color8);
+    background-color: var(--background);
+    color: var(--color8);
 }
 
 input:disabled:hover {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color8);
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color8);
 }
 
 select {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  border-radius: 2px;
-  color: var(--color15);
-  cursor: pointer;
-  font-family: "Iosevka", monospace;
-  font-size: 16px;
-  line-height: 1.5;
-  padding: 8px 12px;
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    border-radius: 2px;
+    color: var(--color15);
+    cursor: pointer;
+    font-family: "Iosevka", monospace;
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 8px 12px;
 }
 
 select:hover {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color15);
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color15);
 }
 
 select:disabled {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color8);
-  cursor: not-allowed;
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color8);
+    cursor: not-allowed;
 }
 
 select:disabled:hover {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color8);
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color8);
 }
 
 textarea {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  border-radius: 2px;
-  color: var(--color15);
-  font-family: "Iosevka", monospace;
-  font-size: 16px;
-  line-height: 1.5;
-  padding: 8px 12px;
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    border-radius: 2px;
+    color: var(--color15);
+    font-family: "Iosevka", monospace;
+    font-size: 16px;
+    line-height: 1.5;
+    padding: 8px 12px;
 }
 
 textarea:hover {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color15);
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color15);
 }
 
 textarea:disabled {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color8);
-  cursor: not-allowed;
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color8);
+    cursor: not-allowed;
 }
 
 textarea:disabled:hover {
-  background-color: var(--color0);
-  border: 1px solid var(--color0);
-  color: var(--color8);
+    background-color: var(--color0);
+    border: 1px solid var(--color0);
+    color: var(--color8);
 }
