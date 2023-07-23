@@ -1,11 +1,15 @@
 // TO-DO: Override p5.js css to make the gruvbox theme work.
 let boids, boidsQuadTree, profilerDisplay, profilerChart, startTime, endTime;
 
-let profiler = true; //TO-DO: make profiler consistent with changes in simulation speed
-resetCount = 0;
-(isNaive = false), (boidSize = 2), (drawArrow = true);
-useCircleQuery = true;
-(showQuadtreeGrid = true), (showQuadtreeQuery = false), (profilingData = []);
+let profiler = true, //TO-DO: make profiler consistent with changes in simulation speed
+	resetCount = 0,
+	isNaive = false, 
+	boidSize = 2,
+	drawArrow = true,
+	useCircleQuery = true
+	showQuadtreeGrid = true,
+	showQuadtreeQuery = false, 
+	profilingData = [];
 
 function initBoids(naive) {
     boids = [];
@@ -51,8 +55,8 @@ function updateBoids(naive) {
 
         for (let i = 0; i < boids.length; i++) {
             boids[i].flock(visibleBoids[i]);
-            boids[i].update();
             boids[i].render(drawArrow, boidSizeSlider.value());
+            boids[i].update();
         }
     } else {
         for (let boid of boids) {
@@ -64,8 +68,8 @@ function updateBoids(naive) {
                     useCircleQuery
                 )
             );
-            boid.update();
             boid.render(drawArrow, boidSizeSlider.value());
+            boid.update();
         }
 
         if (showQuadtreeGrid) boidsQuadTree.render();
