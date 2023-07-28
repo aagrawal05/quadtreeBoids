@@ -1,13 +1,17 @@
 use rand::Rng;
-use crate::{WIDTH, HEIGHT, VISION_RADIUS};
+use crate::{
+    WIDTH, 
+    HEIGHT, 
+    VISION_RADIUS, 
+    BOID_SIZE,
+    MAX_SPEED,
+    MAX_FORCE,
+    COHESION_COEFFICIENT,
+    SEPARATION_COEFFICIENT,
+    ALIGNMENT_COEFFICIENT
+};
+
 use nannou::prelude::*;
-
-const MAX_SPEED: f32 = 5.0;
-const MAX_FORCE: f32 = 0.2;
-
-const COHESION_COEFFICIENT: f32 = 1.0;
-const SEPARATION_COEFFICIENT: f32 = 1.0;
-const ALIGNMENT_COEFFICIENT: f32 = 1.0;
 
 fn with_magnitude(vec: Vec2, mag:f32) -> Vec2 {
     let mut normalized = vec.normalize();
@@ -23,7 +27,7 @@ fn limit_magnitude(vec: Vec2, mag:f32) -> Vec2 {
     limited
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Boid {
     pub position: Vec2,
     velocity: Vec2,
@@ -79,8 +83,8 @@ impl Boid {
         let mut steering = vec2(0.0, 0.0);
         let mut total = 0;
         for other in boids {
-            let d = self.position.distance(other.position);
             let mut diff = self.position - other.position;
+            let d = diff.length();
             diff /= d * d;
             steering += diff;
             total += 1;
@@ -125,7 +129,7 @@ impl Boid {
         self.edges();
     }
 
-    pub fn draw(&self, draw: &Draw, boid_size: f32) {
+    pub fn draw(&self, draw: &Draw) {
         let theta = self.velocity.angle() + PI / 2.0;
 
         draw.polygon()
@@ -133,9 +137,9 @@ impl Boid {
             .stroke_color(WHITE)
             .points(
                 vec![
-                    pt2(0.0, -boid_size * 2.0),
-                    pt2(-boid_size, boid_size * 2.0),
-                    pt2(boid_size, boid_size * 2.0)
+                    pt2(0.0, -BOID_SIZE * 2.0),
+                    pt2(-BOID_SIZE, BOID_SIZE * 2.0),
+                    pt2(BOID_SIZE, BOID_SIZE * 2.0)
                 ]
                 .iter()
                 .map(|p| {

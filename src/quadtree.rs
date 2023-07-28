@@ -1,13 +1,10 @@
-use crate::VISION_RADIUS;
+use crate::{VISION_RADIUS, MAX_CHILDREN, MAX_DEPTH};
 use crate::Boid;
 
 use nannou::prelude::*;
 
 use std::cell::RefCell;
 use std::rc::Rc;
-
-const MAX_CHILDREN: i32 = 4;
-const MAX_DEPTH: i32 = 10;
 
 pub struct Rect {
     pub position: Vec2,
@@ -52,7 +49,7 @@ impl QuadTree {
         let mut curr = Rc::clone(&self.root);
         loop {
             let mut curr_ref = curr.borrow_mut();
-            let next_node = if (curr_ref.children.len() > MAX_CHILDREN as usize - 1 && (MAX_DEPTH == -1 || curr_ref.depth < MAX_DEPTH)) {
+            let next_node = if curr_ref.children.len() > MAX_CHILDREN as usize - 1 && (MAX_DEPTH == -1 || curr_ref.depth < MAX_DEPTH) {
                 if boid.position.x > curr_ref.bounds.position.x + curr_ref.bounds.size.x / 2.0 {
                     // right
                     if boid.position.y > curr_ref.bounds.position.y + curr_ref.bounds.size.y / 2.0 {
@@ -98,6 +95,64 @@ impl QuadTree {
             VISION_RADIUS * 2.0,
         );
         self.root.borrow().query(boid, &bounding_rect)
+    }
+
+    pub fn render(&self, draw: &Draw){
+        // Walk through the tree and draw their rectangle bounds
+        let curr = Rc::clone(&self.root);
+        loop {
+            let curr_ref = curr.borrow();
+            draw.rect()
+                .xy(curr_ref.bounds.position)
+                .wh(curr_ref.bounds.size)
+                .stroke_weight(1.0)
+                .stroke_color(BLACK)
+                .color(rgba(0.0, 0.0, 0.0, 0.0));
+
+            if curr_ref.top_left.is_some() ||
+               curr_ref.top_right.is_some() ||
+               curr_ref.bottom_left.is_some() ||
+               curr_ref.bottom_right.is_some() {
+                if curr_ref.top_left.is_some() {
+                    QuadTree::render_helper(&curr_ref.top_left.as_ref().unwrap(), draw);
+                }
+                if curr_ref.top_right.is_some() {
+                    QuadTree::render_helper(&curr_ref.top_right.as_ref().unwrap(), draw);
+                }
+                if curr_ref.bottom_left.is_some() {
+                    QuadTree::render_helper(&curr_ref.bottom_left.as_ref().unwrap(), draw);
+                }
+                if curr_ref.bottom_right.is_some() {
+                    QuadTree::render_helper(&curr_ref.bottom_right.as_ref().unwrap(), draw);
+                }
+            }
+            break;
+        }
+    }
+
+    fn render_helper(node: &Rc<RefCell<QuadTreeNode>>, draw: &Draw) {
+        let curr_ref = node.borrow();
+        draw.rect()
+            .xy(curr_ref.bounds.position+curr_ref.bounds.size/2.0)
+            .wh(curr_ref.bounds.size)
+            .stroke_weight(1.0)
+            .stroke_color(BLUE)
+            .color(rgba(0.0, 0.0, 0.0, 0.0));
+
+        if curr_ref.children.len() > 0 {
+            if curr_ref.top_left.is_some() {
+                QuadTree::render_helper(&curr_ref.top_left.as_ref().unwrap(), draw);
+            }
+            if curr_ref.top_right.is_some() {
+                QuadTree::render_helper(&curr_ref.top_right.as_ref().unwrap(), draw);
+            }
+            if curr_ref.bottom_left.is_some() {
+                QuadTree::render_helper(&curr_ref.bottom_left.as_ref().unwrap(), draw);
+            }
+            if curr_ref.bottom_right.is_some() {
+                QuadTree::render_helper(&curr_ref.bottom_right.as_ref().unwrap(), draw);
+            }
+        }
     }
 }
 
