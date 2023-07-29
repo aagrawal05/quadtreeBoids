@@ -21,7 +21,8 @@ class QuadTree {
 
     insert(item) {
         let currentNode = this.root;
-        while (currentNode.children.length > maxChildren - 1) {
+        while (currentNode.children.length > maxChildren - 1 &&
+				(maxDepth == -1 || currentNode.depth < maxDepth)) {
             if (
                 item.position.x >
                 currentNode.bounds.position.x + currentNode.bounds.size.x / 2
