@@ -3,23 +3,17 @@ const maxForce = 0.2;
 
 class Boid {
     constructor() {
-        this.position = createVector(random(width), random(height));
+        this.position = createVector(random(WIDTH), random(HEIGHT));
         this.velocity = p5.Vector.random2D();
         this.velocity.setMag(random(2, 4));
         this.acceleration = createVector();
     }
 
     edges() {
-        if (this.position.x > width) {
-            this.position.x = 0;
-        } else if (this.position.x < 0) {
-            this.position.x = width;
-        }
-        if (this.position.y > height) {
-            this.position.y = 0;
-        } else if (this.position.y < 0) {
-            this.position.y = height;
-        }
+        if (this.position.x > WIDTH || this.position.x < 0) 
+            this.position.x = ((this.position.x % WIDTH) + WIDTH) % WIDTH;
+        if (this.position.y > HEIGHT || this.position.y < 0)
+            this.position.y = ((this.position.y % HEIGHT) + HEIGHT) % HEIGHT;
     }
 
     cohesion(boids) {

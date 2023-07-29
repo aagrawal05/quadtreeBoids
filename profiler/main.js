@@ -1,5 +1,7 @@
-const epochs_per_env = 1;
-const seconds_per_epoch = 1;
+const epochsPerEnv = 1;
+const secondsPerEpoch = 2;
+
+const WIDTH = 10, HEIGHT = 10;
 
 const initialPopulation = 100,
 		finalPopulation = 1000,
@@ -23,7 +25,7 @@ let population = initialPopulation,
 
 let boids, boidsQuadTree;
 
-let isNaive = true;
+let isNaive = false;
 
 let epoch = 0,
 	frames = 0,
@@ -35,7 +37,7 @@ let data = {};
 
 function initBoids() {
     boids = [];
-    if (!isNaive) boidsQuadTree = new QuadTree(width, height);
+    if (!isNaive) boidsQuadTree = new QuadTree(WIDTH, HEIGHT);
 
     for (let i = 0; i < population; i++) {
         let tmpBoid = new Boid();
@@ -45,12 +47,8 @@ function initBoids() {
 }
 
 function setup() {
-	// frameRate(1000000000);
-    // createCanvas(1080, 720); //TO-DO remove the bounds and allow zooming
     initBoids();
 	epochStartTime = millis();
-	// animate();
-	// noLoop();
 }
 
 function draw() { // animate() {
@@ -76,26 +74,25 @@ function draw() { // animate() {
             boid.update();
         }
 
-        boidsQuadTree.root = new QuadTreeNode(new Rect(0, 0, width, height));
-
+        boidsQuadTree.root = new QuadTreeNode(new Rect(0, 0, WIDTH, HEIGHT));
         for (let boid of boids) boidsQuadTree.insert(boid);
     }
     endTime = performance.now();
     // If we have finished all epochs and population steps, update the parameters
-    if (millis() - epochStartTime > seconds_per_epoch * 1000) {
+    if (millis() - epochStartTime > secondsPerEpoch * 1000) {
 		epochStartTime = millis();
 		frames = 0;
         epoch++;
 
         if (isNaive)
             console.log(
-                `Epoch ${epoch} of ${epochs_per_env} for population : ${population} & vision : ${vision} \n Frames captured : ${frames}`
+                `Epoch ${epoch} of ${epochsPerEnv} for population : ${population} & vision : ${vision} \n Frames captured : ${frames}`
             );
         else
             console.log(
-					`Epoch ${epoch} / ${epochs_per_env} completed for population : ${population} & vision : ${vision} & maxChildren : ${maxChildren} & maxDepth : ${maxDepth}`
+					`Epoch ${epoch} / ${epochsPerEnv} completed for population : ${population} & vision : ${vision} & maxChildren : ${maxChildren} & maxDepth : ${maxDepth}`
 			);
-        if (epoch >= epochs_per_env) {
+        if (epoch >= epochsPerEnv) {
             if (isNaive) saveJSON(data, `checkpoint_${population}_${vision}.json`);
             else saveJSON(data, `checkpoint_${population}_${vision}_${maxChildren}_${maxDepth}.json`);
             epoch = 0;
@@ -105,15 +102,19 @@ function draw() { // animate() {
 				vision += visionStep;
 				if (vision > finalVision) {
 					if (!isNaive) {
+						vision = initialVision;
 						maxChildren++;
 						if (maxChildren > finalMaxChildren) {
+							maxChildren = 1;
 							maxDepth++;
 							if (maxDepth > finalMaxDepth) {
+								noLoop();
 								console.log("Done!");
 								saveJSON(data, `data_${isNaive ? "naive" : "quadtree"}.json`);
 							}
 						}
 					} else {
+						noLoop();
 						console.log("Done!");
 						saveJSON(data, `data_${isNaive ? "naive" : "quadtree"}.json`);
 					}
@@ -122,7 +123,6 @@ function draw() { // animate() {
         }
         initBoids();
     } else {
-			// Record the frame time for the current epoch and population
 			/*
 				1. Naive
 				data = {
@@ -131,7 +131,7 @@ function draw() { // animate() {
 										`0`: [frameTime]
 										`1`: [frameTime]
 										...
-										`epochs_per_env`: [frameTime]
+										`epochsPerEnv`: [frameTime]
 								}
 
 								`${initialVision + visionStep}`: { ... }
@@ -216,5 +216,4 @@ function draw() { // animate() {
 			}
 			frames++;
 	}
-	// requestAnimationFrame(animate);
 }

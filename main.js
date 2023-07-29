@@ -81,7 +81,9 @@ function updateBoids(naive) {
 }
 
 function setup() {
+
     createCanvas(1080, 720); //TO-DO remove the bounds and allow zooming
+	// createCanvas(100, 100);
     createChart();
     profilerCheckbox = createCheckbox("Enable Profiler", profiler);
     profilerCheckbox.changed(() => {

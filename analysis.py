@@ -1,49 +1,86 @@
-import json
 import os
+import json
 import matplotlib.pyplot as plt
 import numpy as np
+from scipy.optimize import curve_fit
 
-end = 800 
-with open('checkpoint'+str(end)+'.json') as f:
+# Load data from data_quadtree.json using json.load()
+with open('data_quadtree.json', 'r') as f:
     data = json.load(f)
 
-y = []
-y1 = []
+points = []
 
-for i in range(100, end+100, 100):
-    y.append(sum(data['true'][str(i)])/len(data['true'][str(i)]))
-    y1.append(sum(data['false'][str(i)]['1'])/len(data['false'][str(i)]['1']))
+# For each of the population with vision 10, maxDepth 5, maxChildren 4
+# Plot the average number of frames in the first epoch against the population
+for population in data.keys():
+    for vision in data[population].keys():
+        for maxDepth in data[population][vision].keys():
+            for maxChildren in data[population][vision][maxDepth].keys():
+                if vision == '10' and maxDepth == '5' and maxChildren == '5':
+                    # Get the average number of frames in the first epoch
+                    # of the current population, vision, maxDepth, and maxChildren
+                    # configuration
+                    epoch = data[population][vision][maxDepth][maxChildren]['0']
+                    averageFrames = sum(epoch) / len(epoch)
+                    points.append((int(population), averageFrames))
+                    # Plot the average number of frames in the first epoch
+                    # against the population
+                    plt.plot(int(population), averageFrames, 'ro')
 
-# Fit quadratic curve
-x = [i for i in range(100, end+100, 100)]
-z = np.polyfit(x, y, 2)
-f = np.poly1d(z)
+# Set the title of the plot
+plt.title('Average number of frames vs. population')
+# Set the x-axis label of the plot
+plt.xlabel('Population')
+# Set the y-axis label of the plot
+plt.ylabel('Average number of frames')
 
-# Fit n log n curve
-z1 = np.polyfit(x * np.log(x), y1, 1)
-f1 = np.poly1d(z1)
+# Get the x and y values of the points
+x = [point[0] for point in points]
+y = [point[1] for point in points]
 
-# Get the r^2 value of the fit
-r2 = 1 - sum((y - f(x))**2)/sum((y - np.mean(y))**2)
-print("R^2 value: ", r2)
+# Sort the x and y values before curve fitting
+sorted_indices = np.argsort(x)
+x = np.array(x)[sorted_indices]
+y = np.array(y)[sorted_indices]
 
-# Get the r^2 value of the fit1
-or2 = 1 - sum((f1(x * np.log(x)) - y1)**2)/sum((y1 - np.mean(y1))**2)
-print("Optimized R^2 value: ", or2)
+# Fit O(n^2) curve to the points
+def func_n_squared(x, a, b):
+    return a * x**2 + b
 
-plt.plot(range(100, end + 100, 100), y, label="Naive average performance")
-# plt.plot(x,f(x),"r--", label="O(n^2) fit")
+# Fit the curve to the points
+popt, pcov = curve_fit(func_n_squared, x, y)
 
-plt.plot(range(100, end + 100, 100), y1, label="Quadratic average performance")
-# plt.plot(x,f1(x * np.log(x)),"r--", label="O(n log n) fit")
+# Calculate the r-squared value
+r2 = np.corrcoef(func_n_squared(x, *popt), y)[0, 1] ** 2
+print('O(n^2) curve fit: y = {}x^2 + {}, r^2 = {}'.format(popt[0], popt[1], r2))
 
-# plt.text(500, 0.5, "O(n^2) fit: " + str(round(r2, 4)))
-# plt.text(500, 0.4, "O(n log n) fit: " + str(round(or2, 4)))
+# Plot the curve
+plt.plot(x, func_n_squared(x, *popt), 'g--', label='O(n^2) curve fit')
 
-plt.xlabel('Number of boids')
-plt.ylabel('Average frametime (ms)')
-plt.title('Average performance for different number of boids')
+# Fit O(n log n) curve to the points
+def func_n_log_n(x, a, b):
+    return a * x * np.log(x) + b
 
-plt.legend()
+# Fit the curve to the points
+popt, pcov = curve_fit(func_n_log_n, x, y)
 
+# Calculate the r-squared value
+r2_log = np.corrcoef(func_n_log_n(x, *popt), y)[0, 1] ** 2
+print('O(n log n) curve fit: y = {}x log(x) + {}, r^2 = {}'.format(popt[0], popt[1], r2_log))
+
+# Plot the curve
+plt.plot(x, func_n_log_n(x, *popt), 'b--', label='O(n log n) curve fit')
+
+# Legend
+plt.plot([], [], 'ro', label='Data')
+plt.legend(loc='upper left')
+
+# O(n^2) R^2 fit text to 6dp in bottom right
+plt.text(0.95, 0.05, 'O(n^2) R^2 = %.6f' % r2, horizontalalignment='right', verticalalignment='bottom', transform=plt.gca().transAxes)
+
+# O(n log n) R^2 fit text to 6dp in bottom right above O(n^2) text
+plt.text(0.95, 0.1, 'O(n log n) R^2 = %.6f' % r2_log, horizontalalignment='right', verticalalignment='bottom', transform=plt.gca().transAxes)
+
+# Show the plot
 plt.show()
+
